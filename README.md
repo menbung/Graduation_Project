@@ -1,22 +1,76 @@
-졸업 프로젝트
+### 프로젝트 개요
+- 이 프로그램은 서버에서 JSON payload를 받아 모델을 실행(KNN/FashionCLIP)하고 결과를 반환합니다.
+- 실제 동작은 payload의 `model_id`로 분기합니다. `1=KNN`, `2=FashionCLIP(추후)`.
 
-실행시에 arg로 url을 서버 url로 바꾸면 된다.
+## 필수 설치(Requirements)
+- Python 3.10+ 권장
+- 패키지
+  - scikit-learn>=1.4
+  - joblib>=1.3
+  - numpy>=1.23
+  - requests>=2.31
+  - Flask>=3.0   (모의 서버 사용 시)
+  - python-dotenv>=1.0
+  - pandas>=2.0  (main.py에서 import)
 
+설치 예시(Windows PowerShell):
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+python -m pip install -U pip
+python -m pip install -U scikit-learn joblib numpy requests Flask python-dotenv pandas
+```
 
-    python Python_src/main.py --knn --payload_url https://REAL/api/payload --watch --interval 5 --post_url https://REAL/api/receive
-    ```
+## 환경변수(Environment)
+- `CSV_SONGS_PATH`: 곡 메타 CSV의 절대/상대 경로 (기본: `Python_src/data/songs_out_final.csv`)
 
-- 권장 정리
-  - `Python_src/server/server_mock.py`: 더 이상 사용 안 함(로컬 테스트용만 유지).
-  - `Python_src/config.py`: 운영환경에서 쓰면 좋을 값들을 환경변수로 관리
-    - 예: `CSV_SONGS_PATH`, `API_BASE_URL`, `API_TOKEN` 등.
-  - 인증/헤더 필요 시:
-    - `Python_src/server/server_client.py`에 헤더 추가해서 사용하거나,
-    - 현재 `main.py`의 `requests.get/post(...)` 호출에 `headers={'Authorization': 'Bearer ...'}` 추가.
+python Python_src/main.py --knn \
+  --payload_url https://REAL_SERVER/api/payload \
+  --watch --interval 5 \
+  --post_url https://REAL_SERVER/api/receive
+```
+- 인증이 필요하면 서버 구현 또는 main의 `requests.get/post` 호출에 헤더 추가:
+```python
+headers={'Authorization': 'Bearer <TOKEN>'}
+```
 
-- 서버 계약 그대로 유지
-  - Pull: GET `/api/payload` → { model_id, seeds, ... }
-  - Push: POST `/api/receive` ← { model_id, seed_titles, final_top_labels, final_top_genres, ... }
+## JSON 계약(Contract)
+### 받는 JSON (server → program)
+- GET `/api/payload`
+- Content-Type: application/json
+```json
+{
+  "model_id": 1,
+  "seeds": [15, 22, 36],
+  "k_neighbors": 3,
+  "per_seed_top": 3,
+  "final_top": 3
+}
+```
+- 규칙: `model_id=1`일 때 `seeds`는 정수 3개 필수
 
-- 선택(운영 모드 변경 시)
-  - 폴링 대신 서버가 프로그램으로 푸시(Webhook)할 계획이면, Flask/FastAPI로 수신 엔드포인트를 이 프로그램에 추가하고 `--watch` 경로는 사용하지 않습니다.
+### 보내는 JSON (program → server)
+- POST `/api/receive`
+- Content-Type: application/json
+```json
+{
+  "model_id": 1,
+  "seed_titles": ["toxic till the end", "끝", "우리들의 블루스"],
+  "final_top_labels": ["미니멀 / Minimal Fashion", "캐주얼 / Casual", "스트릿 / Street Fashion"],
+  "final_top_genres": ["Soul", "Pop", "Ambient"],
+  "per_seed_top_labels": [
+    ["미니멀 / Minimal Fashion", "캐주얼 / Casual", "스트릿 / Street Fashion"],
+    ["캐주얼 / Casual", "시크 / Chic Fashion", "미니멀 / Minimal Fashion"],
+    ["캐주얼 / Casual", "스트릿 / Street Fashion", "미니멀 / Minimal Fashion"]
+  ],
+  "per_seed_top_genres": [
+    ["Indie Pop", "Pop", "Soul"],
+    ["Ambient", "Soul", "Blues"],
+    ["Pop", "Soul", "Country"]
+  ]
+}
+```
+
+- 모델 분기: `models/dispatcher.py`의 `handle_recommendation(payload)`가 `model_id`로 분기
+- KNN 추천: `models/knn_model.py`의 `recommend_*` 함수 사용
+- 고정 CSV 경로: `config.CSV_SONGS_PATH` (환경변수로 오버라이드 가능)
