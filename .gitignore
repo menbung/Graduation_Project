@@ -1,0 +1,11 @@
+﻿Python_src/feature/fashion_clip_model/fashionclip-ft/
+Python_src/feature/fashion_clip_model/image_index.pt
+Python_src/data/cloth/
+*.safetensors
+*.bin
+*.pt
+*.npy
+*.zip
+*.jpg
+*.png
+*.jpeg
