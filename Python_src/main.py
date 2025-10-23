@@ -74,23 +74,42 @@ def main_loop():
                     p = r.json()
                     res = handle_recommendation(p)
                     print('[PAYLOAD]', p)
+                    try:
+                        print('[INFO] dispatcher model_id:', int(p.get('model_id', 1)))
+                    except Exception:
+                        print('[INFO] dispatcher model_id:', p.get('model_id'))
                     print('[RESULT] final top styles:', res.get('final_top_labels', []))
                     if 'final_top_genres' in res:
                         print('[RESULT] final top genres:', res.get('final_top_genres', []))
+                    if 'error' in res:
+                        print('[ERROR] dispatcher:', res.get('error'))
+                    # Fashion-CLIP (model_id=2) result preview
+                    if isinstance(res, dict) and 'results' in res:
+                        items = res.get('results', []) or []
+                        print(f"[INFO] Fashion-CLIP results count: {len(items)}")
+                        print('[RESULT] Fashion-CLIP top results:')
+                        for i, item in enumerate(items[:20], 1):
+                            try:
+                                score = float(item.get('score', 0.0))
+                            except Exception:
+                                score = 0.0
+                            path = item.get('path', '')
+                            print(f'  {i}. {score:.4f}  {path}')
+                    return res
                 if args.watch:
                     try:
+                        last_res = {}
                         while True:
-                            _fetch_and_process()
+                            last_res = _fetch_and_process() or {}
                             iters += 1
                             if args.max_iters and iters >= args.max_iters:
                                 break
                             time.sleep(max(0.0, args.interval))
                     except KeyboardInterrupt:
                         print('Stopped watching payload_url')
-                    result = {}
+                    result = last_res
                 else:
-                    _fetch_and_process()
-                    result = {}
+                    result = _fetch_and_process() or {}
         else:
             seeds = args.seeds
             if args.seeds_json:
@@ -147,12 +166,36 @@ def main_loop():
         if args.post_url:
             try:
                 import requests
-                out_json = {
-                    'model_id': 1,
-                    'seed_titles': seed_titles,
-                    'final_top_labels': final_labels,
-                    'final_top_genres': final_genres,
-                }
+                from pathlib import Path
+                # If Fashion-CLIP result (has image 'results'), convert paths to project-root-relative
+                if isinstance(result, dict) and 'results' in result:
+                    project_root = Path(__file__).resolve().parent.parent
+                    converted = []
+                    for item in result.get('results', []) or []:
+                        p = item.get('path', '')
+                        s = item.get('score', 0.0)
+                        try:
+                            abs_p = Path(p).resolve()
+                            rel_p = abs_p.relative_to(project_root)
+                            rel_str = rel_p.as_posix()
+                        except Exception:
+                            # Fallback to posix string of given path
+                            rel_str = Path(p).as_posix()
+                        converted.append({'path': rel_str, 'score': float(s)})
+                    out_json = {
+                        'model_id': result.get('model_id', 2),
+                        'caption': result.get('caption', ''),
+                        'top_k': result.get('top_k', len(converted)),
+                        'results': converted,
+                    }
+                else:
+                    # KNN payload (keep prior shape)
+                    out_json = {
+                        'model_id': 1,
+                        'seed_titles': seed_titles,
+                        'final_top_labels': final_labels,
+                        'final_top_genres': final_genres,
+                    }
                 r = requests.post(args.post_url, json=out_json, timeout=5)
                 r.raise_for_status()
                 print('[POST] sent to', args.post_url, 'status:', r.status_code)

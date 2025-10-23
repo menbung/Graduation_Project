@@ -74,3 +74,21 @@ headers={'Authorization': 'Bearer <TOKEN>'}
 - 모델 분기: `models/dispatcher.py`의 `handle_recommendation(payload)`가 `model_id`로 분기
 - KNN 추천: `models/knn_model.py`의 `recommend_*` 함수 사용
 - 고정 CSV 경로: `config.CSV_SONGS_PATH` (환경변수로 오버라이드 가능)
+
+
+2025-10-14
+
+해야하는 일
+fashion clip 모델저장할때 허깅스페이스 형식으로 저장해야하는데 그렇게 안해서
+안돌아감
+
+
+
+서버에서 데이터 주는 형식
+
+서버는 그냥 런
+
+클라이언트 실행 knn
+
+
+python .\Python_src\main.py --knn --payload_url http://localhost:8000/mock/payload --post_url http://localhost:8000/api/receive

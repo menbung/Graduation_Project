@@ -4,16 +4,30 @@ from datetime import datetime
 app = Flask(__name__)
 
 # In-memory payload that can be updated at runtime
-CURRENT_PAYLOAD = {
+CURRENT_PAYLOAD_1 = {
     'model_id': 1,
-    'seeds': [15, 22, 36],
+    'seeds': [10, 20, 30],
     'k_neighbors': 3,
     'per_seed_top': 3,
     'final_top': 3,
 }
 
+
+CURRENT_PAYLOAD_2 = {
+    'model_id': 2,
+    'caption': 'lofi hiphop',
+    'top_k': 20,
+    'index_path': 'Python_src/feature/fashion_clip_model/image_index.pt',
+    # 'root_dir': 'Python_src/data/cloth',
+    # 'model_dir': 'Python_src/feature/fashion_clip_model/fashionclip-ft',
+}
+
+CURRENT_PAYLOAD = CURRENT_PAYLOAD_2
 # Last result JSON received from client (main.py)
 LAST_RECEIVED = None
+# Ring buffer of recent received payloads (time + body)
+RECEIVED_LOGS = []  # type: ignore[var-annotated]
+MAX_LOGS = 50
 
 
 @app.get('/health')
@@ -43,13 +57,29 @@ def api_receive():
     global LAST_RECEIVED
     body = request.get_json(silent=True)
     LAST_RECEIVED = body
-    print(f"[{datetime.now().isoformat()}] POST /api/receive <- {body}")
+    now = datetime.now().isoformat()
+    print(f"[{now}] POST /api/receive <- {body}")
+    # Append to logs (with timestamp)
+    RECEIVED_LOGS.append({"time": now, "body": body})
+    if len(RECEIVED_LOGS) > MAX_LOGS:
+        del RECEIVED_LOGS[0:len(RECEIVED_LOGS) - MAX_LOGS]
     return jsonify({'status': 'received', 'body': body})
 
 
 @app.get('/api/received')
 def api_received():
-    return jsonify({'last_received': LAST_RECEIVED})
+
+    return jsonify({
+        'last_received': LAST_RECEIVED,
+        'count': len(RECEIVED_LOGS),
+        'last_time': (RECEIVED_LOGS[-1]['time'] if RECEIVED_LOGS else None),
+    })
+
+
+@app.get('/api/received/all')
+def api_received_all():
+    # Return all recent logs (time + body)
+    return jsonify({'logs': RECEIVED_LOGS})
 
 
 if __name__ == '__main__':
