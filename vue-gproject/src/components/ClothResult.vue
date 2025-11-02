@@ -1,6 +1,9 @@
 <script setup>
 import ItemCloth from './items/ItemCloth.vue'
 import { defineProps } from 'vue'
+import { useUpdateDb } from '@/composables/updateDb'
+
+const db = useUpdateDb()
 
 const props = defineProps({
   number: {
@@ -12,6 +15,11 @@ const props = defineProps({
     default: 'none',
   },
 })
+
+function onClick() {
+  // db.saveToDb()
+  db.addToDb('updateTest2')
+}
 </script>
 
 <template>
@@ -19,7 +27,7 @@ const props = defineProps({
     <h2 class="cloth-result-title">추천 스타일 {{ props.number }}: {{ props.category }}</h2>
     <section class="cloth-result-inner">
       <template v-for="item in 10" :key="item">
-        <ItemCloth />
+        <ItemCloth @click-link="onClick" />
       </template>
     </section>
   </div>

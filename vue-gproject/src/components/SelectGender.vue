@@ -1,13 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 
-// const props = defineProps({
-//   isVisible: {
-//     type: Boolean,
-//     default: true,
-//   },
-// })
-
 const emit = defineEmits(['close-popup', 'confirm-popup'])
 
 const selectedGender = ref('')

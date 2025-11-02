@@ -4,8 +4,6 @@ import { defineStore } from 'pinia'
 export const useDataStore = defineStore('data', () => {
   //추천 옷 데이터 저장
   const clothData = ref([])
-  //로딩 상태를 저장하는 변수
-  const isLoading = ref(false)
 
   const getClothData = computed(() => clothData.value)
 
@@ -18,7 +16,6 @@ export const useDataStore = defineStore('data', () => {
 
   return {
     clothData,
-    isLoading,
     getClothData,
     addClothData,
     removeClothData,

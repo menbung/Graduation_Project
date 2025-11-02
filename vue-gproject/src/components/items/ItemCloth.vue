@@ -1,10 +1,16 @@
-<script setup></script>
+<script setup>
+const emit = defineEmits('click-link')
+
+function onClick() {
+  emit('click-link')
+}
+</script>
 
 <template>
   <article class="item-cloth">
     <div class="result-img" aria-hidden="true"></div>
     <h3 class="card-title">Product1</h3>
-    <button class="link-btn" type="button">
+    <button class="link-btn" type="button" @click="onClick">
       <span class="btn-label">바로가기</span>
       <span class="material-symbols-outlined">arrow_outward</span>
     </button>

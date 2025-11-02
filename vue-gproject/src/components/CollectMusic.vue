@@ -2,10 +2,10 @@
 import ItemMusic from './items/ItemMusic.vue'
 import { ref } from 'vue'
 import { useStatusStore } from '@/stores/status'
-//import { storeToRefs } from 'pinia'
+import SongList from '@/assets/tables/SongTable.json'
 
 const status = useStatusStore()
-//const { getMusicId } = storeToRefs(status)
+const songList = ref(SongList)
 
 const emit = defineEmits(['open-popup'])
 
@@ -28,8 +28,11 @@ function subCount(id) {
 <template>
   <div class="title">선호하는 음악을 선택해 주세요!<br />선택된 음악 ({{ musicCount }}/3)</div>
   <div class="music-bundle">
-    <template v-for="item in 20" :key="item">
-      <ItemMusic :count="musicCount" :id="item" @add-count="addCount" @sub-count="subCount" />
+    <template v-for="(song, index) in songList" :key="index">
+      <ItemMusic :count="musicCount" :id="index" @add-count="addCount" @sub-count="subCount">
+        <template #singer>{{ song.singer }}</template>
+        <template #title>{{ song.title }}</template>
+      </ItemMusic>
     </template>
   </div>
   <div class="button-container">
