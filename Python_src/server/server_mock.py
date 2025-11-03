@@ -15,11 +15,11 @@ CURRENT_PAYLOAD_1 = {
 
 CURRENT_PAYLOAD_2 = {
     'model_id': 2,
-    'caption': 'lofi hiphop',
+    'song_title': 'Love wins all',
+    'artist_name': 'IU',
+    'caption':'',
     'top_k': 20,
     'index_path': 'Python_src/feature/fashion_clip_model/image_index.pt',
-    # 'root_dir': 'Python_src/data/cloth',
-    # 'model_dir': 'Python_src/feature/fashion_clip_model/fashionclip-ft',
 }
 
 CURRENT_PAYLOAD = CURRENT_PAYLOAD_2
