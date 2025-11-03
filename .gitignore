@@ -1,6 +1,37 @@
-﻿Python_src/feature/fashion_clip_model/fashionclip-ft/
+﻿# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.venv*/
+venv/
+env/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs / caches
+*.log
+.cache/
+*.cache/
+
+# Notebooks (checkpoints만 제외)
+.ipynb_checkpoints/
+
+# Project large assets and generated data
+Python_src/feature/fashion_clip_model/fashionclip-ft/
 Python_src/feature/fashion_clip_model/image_index.pt
 Python_src/data/cloth/
+Python_src/data/new_songs/mp3/
+Python_src/data/new_songs/album_images/
+Python_src/data/songs_out/songs_out_new.csv
+
+# Model/weight and large binary patterns
 *.safetensors
 *.bin
 *.pt
@@ -9,3 +40,10 @@ Python_src/data/cloth/
 *.jpg
 *.png
 *.jpeg
+*.webp
+
+# Cookies / local creds
+cookies.txt
+
+# Selenium / drivers (필요 시)
+chromedriver.exe
