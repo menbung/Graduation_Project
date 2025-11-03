@@ -92,3 +92,13 @@ fashion clip 모델저장할때 허깅스페이스 형식으로 저장해야하�
 
 
 python .\Python_src\main.py --knn --payload_url http://localhost:8000/mock/payload --post_url http://localhost:8000/api/receive
+
+
+
+가장 최근 구현 25-10-30
+
+문제
+
+model id 2번을 받아서 할때 유튜브 크롤링이 안됌
+
+
