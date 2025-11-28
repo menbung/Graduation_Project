@@ -1,7 +1,33 @@
+import logging
+import os
+import traceback
+import sys
+from pathlib import Path
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from datetime import datetime
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
+
+DEFAULT_ALLOWED_ORIGINS = ['http://localhost:5173']
+_origins_raw = os.environ.get('ALLOWED_ORIGINS', '')
+if _origins_raw.strip():
+    ALLOWED_ORIGINS = [origin.strip() for origin in _origins_raw.split(',') if origin.strip()]
+else:
+    ALLOWED_ORIGINS = DEFAULT_ALLOWED_ORIGINS
+CORS(
+    app,
+    resources={r"/api/*": {"origins": ALLOWED_ORIGINS or "*"}},
+    supports_credentials=False,
+    methods=["GET", "POST", "OPTIONS"],
+)
 
 # In-memory payload that can be updated at runtime
 CURRENT_PAYLOAD_1 = {
@@ -81,6 +107,29 @@ def api_received_all():
     # Return all recent logs (time + body)
     return jsonify({'logs': RECEIVED_LOGS})
 
+@app.post('/api/recommend')
+def api_recommend():
+    """
+    Accepts JSON payload and returns model inference result via models.dispatcher.
+    """
+    try:
+        from models.dispatcher import handle_recommendation  # lazy import to avoid startup failures
+    except Exception as e:
+        return jsonify({'error': f'dispatcher import failed: {e}'}), 500
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        result = handle_recommendation(payload)
+        status = 200 if not (isinstance(result, dict) and 'error' in result) else 400
+        return jsonify(result), status
+    except Exception as e:
+        trace = traceback.format_exc()
+        app.logger.error("api_recommend error with payload=%s\n%s", payload, trace)
+        print(trace)
+        return jsonify({'error': str(e), 'traceback': trace}), 500
+
 
 if __name__ == '__main__':
-    app.run(port=8000)
+    import os
+    port = int(os.environ.get('PORT', '8000'))
+    app.run(host='0.0.0.0', port=port)

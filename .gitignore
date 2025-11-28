@@ -23,15 +23,13 @@ Thumbs.db
 # Notebooks (checkpoints만 제외)
 .ipynb_checkpoints/
 
-# Project large assets and generated data
+# --- 아래 항목 삭제/주석 처리 ---
 Python_src/feature/fashion_clip_model/fashionclip-ft/
 Python_src/feature/fashion_clip_model/image_index.pt
 Python_src/data/cloth/
 Python_src/data/new_songs/mp3/
 Python_src/data/new_songs/album_images/
 Python_src/data/songs_out/songs_out_new.csv
-
-# Model/weight and large binary patterns
 *.safetensors
 *.bin
 *.pt
@@ -41,6 +39,7 @@ Python_src/data/songs_out/songs_out_new.csv
 *.png
 *.jpeg
 *.webp
+# ---------------------------------
 
 # Cookies / local creds
 cookies.txt

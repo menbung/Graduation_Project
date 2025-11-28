@@ -1,0 +1,31 @@
+# Core scientific stack (pin NumPy < 2 for laion-clap compatibility)
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.11.4
+
+# ML / models (installed without torch; torch is installed in Dockerfile for correct platform)
+scikit-learn==1.4.2
+joblib==1.4.2
+transformers==4.45.2
+pillow==10.4.0
+safetensors>=0.4.3
+
+# Audio / CLAP
+librosa==0.11.0
+laion-clap==1.1.7
+
+# Crawling / HTTP
+selenium==4.25.0
+yt-dlp>=2024.08.06
+requests==2.32.3
+
+# Server utilities
+Flask==3.0.3
+flask-cors==4.0.1
+python-dotenv==1.0.1
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Optional utilities
+tqdm>=4.66.4
+

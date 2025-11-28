@@ -1,10 +1,15 @@
+import logging
+import traceback
 from typing import Dict, Any, List
 from models.knn_model import recommend_with_config_seeds
 from config import MP3_OUTPUT_DIR  # type: ignore
+
+logger = logging.getLogger(__name__)
 try:
     # Optional import; used only for model_id == 2
     from feature.fashion_clip import load_fashionclip, rank_images_for_caption, rank_with_prebuilt_index
 except Exception:
+    logger.warning("feature.fashion_clip import failed:\n%s", traceback.format_exc())
     load_fashionclip = None  # type: ignore
     rank_images_for_caption = None  # type: ignore
 try:
@@ -114,11 +119,27 @@ def handle_recommendation(payload: Dict[str, Any]) -> Dict[str, Any]:
             )
 
         print(f"[DISPATCH] Ranked results: {len(ranked)}")
+        serializable_results: List[Dict[str, Any]] = []
+        for item in ranked:
+            if isinstance(item, dict):
+                path = str(item.get("path", ""))
+                score_val = item.get("score", 0.0)
+            else:
+                try:
+                    path, score_val = item  # type: ignore[misc]
+                except Exception:
+                    path, score_val = str(item), 0.0
+            try:
+                score = float(score_val)
+            except Exception:
+                score = 0.0
+            serializable_results.append({"path": str(path), "score": score})
+
         return {
             "model_id": 2,
             "caption": caption,
             "top_k": top_k,
-            "results": [{"path": p, "score": s} for p, s in ranked],
+            "results": serializable_results,
             "audio_dir": audio_dir,
             "lyrics": lyrics_text,
         }

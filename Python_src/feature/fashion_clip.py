@@ -77,10 +77,9 @@ def load_fashionclip(
     if use_half is None:
         use_half = (device == "cuda")
 
-    torch_dtype = torch.float16 if use_half else torch.float32
+    torch_dtype = "float16" if use_half else "float32"
 
-    # transformers>=4.44 uses 'dtype' instead of 'torch_dtype'
-    model = CLIPModel.from_pretrained(str(resolved), dtype=torch_dtype)
+    model = CLIPModel.from_pretrained(str(resolved), torch_dtype=torch_dtype)
     processor = CLIPProcessor.from_pretrained(str(resolved), use_fast=True)
 
     model = model.to(device)

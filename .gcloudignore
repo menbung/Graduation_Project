@@ -1,0 +1,50 @@
+# Files excluded from Cloud Build context upload
+# Note: We intentionally DO NOT exclude model/index/data assets required for Docker builds.
+
+# VCS
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv*/
+venv/
+env/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs / caches
+*.log
+.cache/
+*.cache/
+
+# Notebooks (checkpoints only)
+.ipynb_checkpoints/
+
+# Local creds / binaries (keep out of build if not needed)
+cookies.txt
+chromedriver.exe
+
+# --------------------------------------------------------
+# We deliberately keep the following INCLUDED in the build:
+# - Python_src/feature/fashion_clip_model/fashionclip-ft/**
+# - Python_src/feature/fashion_clip_model/image_index.pt
+# - Python_src/data/** (cloth, new_songs, etc. if present)
+# - Python_src/models/knn_model.joblib
+# If you add broad excludes above in the future,
+# ensure to re-include with negation patterns, e.g.:
+# !Python_src/feature/fashion_clip_model/**
+# !Python_src/data/**
+# --------------------------------------------------------
+
+

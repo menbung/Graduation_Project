@@ -24,7 +24,7 @@ def main_loop():
     
     parser = argparse.ArgumentParser(description='App entry with optional KNN demo')
     parser.add_argument('--knn', action='store_true', help='Run KNN recommendation demo instead of crawl loop')
-    parser.add_argument('--csv_path', default='Python_src/data/songs_out_final.csv', help='CSV path for KNN demo (project-relative ok)')
+    parser.add_argument('--csv_path', default='data/songs_out_final.csv', help='CSV path for KNN demo (project-relative ok)')
     #csv path 경로 기본 상대경로 사용해야함
     parser.add_argument('--seeds', nargs='+', type=int, default=[15, 22, 36], help='Three seed indices for KNN demo')
     parser.add_argument('--seeds_json', type=str, default=None, help='Path to a JSON file containing {"seeds":[a,b,c]}')

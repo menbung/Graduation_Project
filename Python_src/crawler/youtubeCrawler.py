@@ -26,7 +26,7 @@ def download_mp3_from_youtube(query: str, output_dir: Optional[str] = None) -> s
     print(f"[YT] Output directory: {out_dir}")
 
     # Try Selenium-driven search to get the first video URL
-    video_url = None
+    video_urls = []
     try:
         from selenium import webdriver  # type: ignore
         from selenium.webdriver.chrome.options import Options  # type: ignore
@@ -61,21 +61,24 @@ def download_mp3_from_youtube(query: str, output_dir: Optional[str] = None) -> s
             for v in videos:
                 href = v.get_attribute("href")
                 if href:
-                    video_url = href
-                    break
-            if not video_url:
+                    video_urls.append(href)
+            if not video_urls:
                 raise RuntimeError("No video URL found from search results")
             # Sanitize playlist params; keep only watch?v=VIDEOID if present
             try:
                 from urllib.parse import urlparse, parse_qs
-                parsed = urlparse(video_url)
-                qs = parse_qs(parsed.query)
-                vid = qs.get('v', [None])[0]
-                if vid:
-                    video_url = f"https://www.youtube.com/watch?v={vid}"
+                cleaned = []
+                for url in video_urls:
+                    parsed = urlparse(url)
+                    qs = parse_qs(parsed.query)
+                    vid = qs.get('v', [None])[0]
+                    if vid:
+                        cleaned.append(f"https://www.youtube.com/watch?v={vid}")
+                video_urls = cleaned or video_urls
             except Exception:
                 pass
-            print(f"[YT] Found video: {video_url}")
+            if video_urls:
+                print(f"[YT] Found videos: {video_urls[:3]}")
         finally:
             try:
                 if driver is not None:
@@ -89,8 +92,8 @@ def download_mp3_from_youtube(query: str, output_dir: Optional[str] = None) -> s
     import os, re
     safe_query = re.sub(r'[\\/:*?"<>|]', '_', query)
     ydl_opts = {
-        # Prefer m4a (mp4a) first, then bestaudio
-        'format': 'bestaudio[ext=m4a]/bestaudio[acodec^=mp4a]/bestaudio/best',
+        # Grab the best available audio (regardless of container); FFmpeg will convert to mp3.
+        'format': 'bestaudio/best',
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
@@ -112,21 +115,30 @@ def download_mp3_from_youtube(query: str, output_dir: Optional[str] = None) -> s
     if cookie_path.exists():
         ydl_opts['cookiefile'] = str(cookie_path)
 
+    targets = video_urls[:3] or []
+    if not targets:
+        targets.append(f"ytsearch1:{query}")
+
     print("[YT] Downloading audio with yt_dlp...")
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            target = video_url or f"ytsearch1:{query}"
-            ydl.download([target])
-        final_mp3 = Path(out_dir) / f"{safe_query}.mp3"
-        print(f"[YT] Download complete. dir='{out_dir}'")
-        print(f"[RESULT][YT] saved='{final_mp3}' exists={final_mp3.exists()}")
-        return str(out_dir)
-    except Exception as e:
-        print(f"[YT][ERROR] Download failed: {e}")
-        # Diagnostic: list available formats for this video
+    last_error: Exception | None = None
+    for idx, target in enumerate(targets, 1):
+        print(f"[YT] Attempt {idx}/{len(targets)} target={target}")
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([target])
+            final_mp3 = Path(out_dir) / f"{safe_query}.mp3"
+            print(f"[YT] Download complete. dir='{out_dir}'")
+            print(f"[RESULT][YT] saved='{final_mp3}' exists={final_mp3.exists()}")
+            return str(out_dir)
+        except Exception as e:
+            last_error = e
+            print(f"[YT][ERROR] Download failed for target={target}: {e}")
+
+    # all attempts failed -> diagnostics then raise
+    if last_error:
+        target = targets[-1]
         try:
             with yt_dlp.YoutubeDL({'quiet': True, 'no_warnings': True}) as ydl:
-                target = video_url or f"ytsearch1:{query}"
                 info = ydl.extract_info(target, download=False)
                 fmts = info.get('formats', []) if isinstance(info, dict) else []
                 exts = sorted({f.get('ext') for f in fmts if f.get('ext')})
@@ -135,4 +147,4 @@ def download_mp3_from_youtube(query: str, output_dir: Optional[str] = None) -> s
                 print(f"[YT][DIAG] available acodecs={acodecs}")
         except Exception as e2:
             print(f"[YT][DIAG][ERROR] {e2}")
-        raise
+        raise last_error
