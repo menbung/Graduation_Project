@@ -59,8 +59,14 @@ export function useAnonymousLogin() {
   onMounted(() => {
     unsubscribe = onAuthStateChanged(auth, (u) => {
       user.value = u
-      statusStore.updateUser(user.value.uid)
-      isNewUser.value = true
+
+      if (u) {
+        statusStore.updateUser(u.uid)
+        isNewUser.value = true
+      } else {
+        statusStore.deleteUser()
+        isNewUser.value = false
+      }
     })
   })
 

@@ -2,18 +2,22 @@
 import ItemMusic from './items/ItemMusic.vue'
 import { ref } from 'vue'
 import { useStatusStore } from '@/stores/status'
-import SongList from '@/assets/tables/SongTable.json'
+import { useDataStore } from '@/stores/data'
+import { storeToRefs } from 'pinia'
 
 const status = useStatusStore()
-const songList = ref(SongList)
-
-const emit = defineEmits(['open-popup'])
-
-const openPopup = () => {
-  emit('open-popup')
-}
+const { musicData } = storeToRefs(useDataStore())
+const emit = defineEmits(['call-api'])
 
 const musicCount = ref(0)
+
+// const openPopup = () => {
+//   emit('open-popup')
+// }
+
+const callApi = () => {
+  emit('call-api')
+}
 
 function addCount(id) {
   musicCount.value++
@@ -28,15 +32,21 @@ function subCount(id) {
 <template>
   <div class="title">선호하는 음악을 선택해 주세요!<br />선택된 음악 ({{ musicCount }}/3)</div>
   <div class="music-bundle">
-    <template v-for="(song, index) in songList" :key="index">
-      <ItemMusic :count="musicCount" :id="index" @add-count="addCount" @sub-count="subCount">
-        <template #singer>{{ song.singer }}</template>
-        <template #title>{{ song.title }}</template>
+    <template v-for="(music, index) in musicData" :key="index">
+      <ItemMusic
+        :count="musicCount"
+        :id="music.number"
+        :imageUrl="music.url || 'none'"
+        @add-count="addCount"
+        @sub-count="subCount"
+      >
+        <template #singer>{{ music.singer }}</template>
+        <template #title>{{ music.title }}</template>
       </ItemMusic>
     </template>
   </div>
   <div class="button-container">
-    <button class="confirm-btn" @click="openPopup" :disabled="musicCount !== 3">선택 완료</button>
+    <button class="confirm-btn" @click="callApi" :disabled="musicCount !== 3">선택 완료</button>
   </div>
 </template>
 

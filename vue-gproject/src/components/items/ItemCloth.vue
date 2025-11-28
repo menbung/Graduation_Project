@@ -1,16 +1,35 @@
 <script setup>
-const emit = defineEmits('click-link')
+const emit = defineEmits(['click-link'])
 
+const props = defineProps({
+  id: {
+    type: String,
+    default: '0',
+  },
+  img: {
+    type: String,
+    default: 'none',
+  },
+  link: {
+    type: String,
+    default: 'none',
+  },
+})
 function onClick() {
-  emit('click-link')
+  window.open(props.link, '_blank', 'noopener noreferrer')
+  emit('click-link', props.id)
 }
 </script>
 
 <template>
   <article class="item-cloth">
-    <div class="result-img" aria-hidden="true"></div>
-    <h3 class="card-title">Product1</h3>
-    <button class="link-btn" type="button" @click="onClick">
+    <div
+      class="result-img"
+      aria-hidden="true"
+      :style="{ backgroundImage: props.img ? `url('${props.img}')` : '' }"
+    ></div>
+    <h3 class="card-title">{{ props.id }}</h3>
+    <button class="link-btn" @click.prevent="onClick">
       <span class="btn-label">바로가기</span>
       <span class="material-symbols-outlined">arrow_outward</span>
     </button>
@@ -40,6 +59,9 @@ function onClick() {
 }
 .card-title {
   font-family: 'BMHanna';
+  white-space: nowrap;
+  text-overflow: clip;
+  overflow: hidden;
   font-size: 16px;
   font-weight: 600;
 }
@@ -57,9 +79,11 @@ function onClick() {
 .btn-label {
   font-family: 'BMHanna';
   font-weight: 700;
+  color: #000000;
 }
 .material-symbols-outlined {
   font-size: 16px;
   font-variation-settings: 'FILL' 0 'wght' 400 'GRAD' 0 'opsz' 24;
+  color: #000000;
 }
 </style>

@@ -4,6 +4,8 @@ import { defineStore } from 'pinia'
 export const useDataStore = defineStore('data', () => {
   //추천 옷 데이터 저장
   const clothData = ref([])
+  //음악 데이터 저장
+  const musicData = ref([])
 
   const getClothData = computed(() => clothData.value)
 
@@ -14,10 +16,16 @@ export const useDataStore = defineStore('data', () => {
     clothData.value = clothData.value.filter((item) => item !== cloth)
   }
 
+  function addMusicData(music) {
+    musicData.value.push(music)
+  }
+
   return {
     clothData,
+    musicData,
     getClothData,
     addClothData,
     removeClothData,
+    addMusicData,
   }
 })

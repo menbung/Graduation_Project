@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 export const useStatusStore = defineStore('status', () => {
   // 유저 정보
   const user = ref(null)
-  //유저가 선택한 음악 번호 리스트
+  //유저가 선택한 음악 리스트
   const musicId = ref([])
   //유저의 스타일 태그 리스트
   const styleTag = ref([])

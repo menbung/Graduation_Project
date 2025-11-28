@@ -8,22 +8,26 @@ const titleRef = ref(null)
 const emit = defineEmits(['add-count', 'sub-count'])
 const props = defineProps({
   count: {
-    typeof: Number,
+    type: Number,
     default: 0,
   },
   id: {
-    typeof: Number,
+    type: Number,
     default: 0,
+  },
+  imageUrl: {
+    type: String,
+    default: 'none',
   },
 })
 
 function onClick() {
   if (isOnClick.value) {
     isOnClick.value = false
-    emit('sub-count', props.id)
+    emit('sub-count', props.id - 1)
   } else if (props.count < 3) {
     isOnClick.value = true
-    emit('add-count', props.id)
+    emit('add-count', props.id - 1)
   }
 }
 
@@ -62,7 +66,11 @@ onMounted(async () => {
 
 <template>
   <article class="item-music" :class="{ check: isOnClick }" @click="onClick">
-    <div class="music-img" aria-hidden="true"></div>
+    <div
+      class="music-img"
+      aria-hidden="true"
+      :style="{ backgroundImage: props.imageUrl ? `url('${props.imageUrl}')` : '' }"
+    ></div>
     <div class="music-singer" ref="singerRef">
       <!-- 롤링 효과를 위한 컨테이너: 텍스트를 두 번 복제하여 무한 반복 효과 구현 -->
       <div class="rolling-container">
@@ -86,6 +94,9 @@ onMounted(async () => {
           <slot name="title"></slot>
         </span>
       </div>
+    </div>
+    <div class="test-text">
+      {{ props.imageUrl }}
     </div>
   </article>
 </template>
@@ -117,7 +128,8 @@ onMounted(async () => {
   background-position: center;
 }
 .music-singer,
-.music-title {
+.music-title,
+.test-text {
   font-size: 16px;
   font-weight: 600;
   white-space: nowrap;

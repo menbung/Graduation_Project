@@ -4,25 +4,38 @@ import { useAnonymousLogin } from '@/composables/login'
 import { useGetDataDb } from '@/composables/getDataDb'
 import { useSwitchStore } from '@/stores/switch.js'
 import { storeToRefs } from 'pinia'
+import LoadingView from '@/components/LoadingView.vue'
+import { healthCheck } from '@/api/client'
 
 const router = useRouter()
 const auth = useAnonymousLogin()
-const getDataDb = useGetDataDb()
-const switchStore = useSwitchStore()
-const { isNewUser } = storeToRefs(switchStore)
-function loginClick() {
+const { loadMusicData } = useGetDataDb()
+const { isLoading, isNewUser } = storeToRefs(useSwitchStore())
+
+async function loginClick() {
   if (isNewUser.value) {
-    getDataDb.loadFromDb()
+    //기존에 로그인한 유저인 경우
+    isLoading.value = true
+    // await loadFromDb() //유저 정보 가져오기
+    await healthCheck()
+    isLoading.value = false
     // router.push('/main')
-    router.push('/collect-data')
+    // router.push('/collect-data')
   } else {
-    auth.signInAnon()
+    //새로운 유저인 경우
+    isLoading.value = true
+    await auth.signInAnon() //익명 로그인 진행
+    await loadMusicData() //음악 정보 가져오기
+    isLoading.value = false
     router.push('/collect-data')
   }
 }
 </script>
 
 <template>
+  <LoadingView v-if="isLoading">
+    <template #text>로딩 중...</template>
+  </LoadingView>
   <div class="login-popup-overlay">
     <div class="login-popup" @click.stop>
       <div class="popup-header">

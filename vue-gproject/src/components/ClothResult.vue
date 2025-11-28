@@ -1,33 +1,45 @@
 <script setup>
 import ItemCloth from './items/ItemCloth.vue'
-import { defineProps } from 'vue'
+import { computed, defineProps } from 'vue'
 import { useUpdateDb } from '@/composables/updateDb'
-
-const db = useUpdateDb()
+import { useDataStore } from '@/stores/data'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   number: {
-    typeof: Number,
+    type: Number,
     default: 0,
   },
   category: {
-    typeof: String,
+    type: String,
     default: 'none',
   },
 })
 
-function onClick() {
-  // db.saveToDb()
-  db.addToDb('updateTest2')
+const db = useUpdateDb()
+const { clothData } = storeToRefs(useDataStore())
+const clothList = computed(() => {
+  const list = clothData.value?.[props.number]
+  return Array.isArray(list) ? list : []
+})
+
+function onClick(id) {
+  const clothText = `${props.category}/${id}`
+  db.addToDb(clothText)
 }
 </script>
 
 <template>
   <div class="cloth-result">
-    <h2 class="cloth-result-title">추천 스타일 {{ props.number }}: {{ props.category }}</h2>
+    <h2 class="cloth-result-title">추천 스타일 {{ props.number + 1 }}: {{ props.category }}</h2>
     <section class="cloth-result-inner">
-      <template v-for="item in 10" :key="item">
-        <ItemCloth @click-link="onClick" />
+      <template v-for="(cloth, index) in clothList" :key="index">
+        <ItemCloth
+          :id="cloth.img_id"
+          :img="cloth.img_url"
+          :link="cloth.web_url"
+          @click-link="onClick"
+        />
       </template>
     </section>
   </div>
